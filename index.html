@@ -14,23 +14,11 @@
 </head>
 <body>
 
-<div id="playercontainer">
-<div id="ytapiplayer">
-<p>You need Flash player 8+ and JavaScript enabled to view this video.</p>
-
-<script type="text/javascript" id="movie">
-      var params = { allowScriptAccess: "always", bgcolor: "#271c16" };
-      var atts = { id: "myytplayer" };
-      swfobject.embedSWF("http://www.youtube.com/apiplayer?enablejsapi=1&amp;playerapiid=ytplayer&cc_load_policy=1",
-                         "ytapiplayer", "425", "344", "8", null, null, params, atts);
-</script>
-</div><!--end of ytapiplayer-->
+<div id="playercontainer"></div>
 
 <div id="controls">
 <form action="form_action.php">
 
-<!--change the value here to the YouTube video you would like to appear-->
-<input type="hidden" id="youtube-initial-id" value="Ks7fLAwzVxY" />
 <h2>YouTube player Controls</h2>
 <fieldset>
 <input type="button" name="play" value="play" id="play" onclick="javascript:void(0);" />
@@ -48,7 +36,6 @@
 
 <div id="playerstate">
 Time: <span id="videotime"></span> of <span id="videolength"></span>&ensp;[<span id="videopercent"></span>%] &emsp; Volume: <span id="volume"></span>
-
 </div><!--end of playerstate-->
 </div><!--end of controls-->
 </div><!--end of kitandkaboodle-->
@@ -65,6 +52,10 @@ Time: <span id="videotime"></span> of <span id="videolength"></span>&ensp;[<span
 <li><a href="javascript:void(0)" onclick="loadVideo('Ks7fLAwzVxY')">The Battle of Jericho</a></li>
 </ul>
 </div>
+
+<script type="text/javascript">
+  loadVideo("Ks7fLAwzVxY");
+</script>
 
 </body>
 </html>

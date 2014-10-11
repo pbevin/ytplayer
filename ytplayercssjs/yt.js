@@ -1,145 +1,177 @@
-
 (function(window) {
-  var ytplayer;
+  'use strict';
+
+  var volumeLevels = [ 0,10,20,30,40,50,60,70,80,90,100 ];
   var ids = [
     'play', 'pause', 'rewind', 'fwd',
     'reset', 'softer', 'louder', 'mute', 'unmute',
     'videotime', 'videolength', 'videopercent', 'volume'
   ];
+  var control, player, initialId;
 
-  document.addEventListener('DOMContentLoaded', function(){
-    window.onYouTubePlayerReady = function(playerId) {
+  initializeApi();
+  window.loadVideo = loadVideoBeforePlayerLoaded;
+
+  function onPlayerStateChange(state) {
+    if (state.data == YT.PlayerState.PLAYING) {
+      switchButtons("play", "pause");
+    } else {
+      switchButtons("pause", "play");
+    }
+  }
+
+  function onPlayerReady() {
+    control = findControls(ids);
+    setInterval(updateytplayerInfo, 250);
+    window.loadVideo = loadVideo;
+    window.resetControls = resetControls;
+
+    control.play.onclick = function() {
+      player.playVideo();
+      switchButtons('play', 'pause');
+    };
+
+    control.pause.onclick = function() {
+      player.pauseVideo();
+      switchButtons('pause', 'play');
+    };
+    control.fwd.onclick = function() {
+      player.seekTo(player.getCurrentTime() + 15);
+    };
+    control.rewind.onclick = function() {
+      time = player.getCurrentTime();
+      time -= 15;
+      if (time < 0) {
+        time = 0;
+      }
+      player.seekTo(time);
+    };
+    control.mute.onclick = function() {
+      player.mute();
+      switchButtons('mute', 'unmute');
+    };
+    control.unmute.onclick = function() {
+      player.unMute();
+      switchButtons('unmute', 'mute');
+    };
+    control.softer.onclick = function() {
       var i;
-      var volumeLevels = new Array(0,10,20,30,40,50,60,70,80,90,100);
-      var control = findControls(ids);
-      window.loadVideo = load;
-      window.resetControls = resetControls;
-      ytplayer = document.getElementById("myytplayer");
-      setInterval(updateytplayerInfo, 250);
+      var vol = player.getVolume();
 
-      control.play.onclick = function() {
-        ytplayer.playVideo();
-        switchButtons('play', 'pause')
-      };
-
-      control.pause.onclick = function() {
-        ytplayer.pauseVideo();
-        switchButtons('pause', 'play');
-      };
-      control.fwd.onclick = function() {
-        ytplayer.seekTo(ytplayer.getCurrentTime() + 15);
-      };
-      control.rewind.onclick = function() {
-        time = ytplayer.getCurrentTime();
-        time -= 15;
-        if (time < 0) {
-          time = 0;
+      for (i = volumeLevels.length - 1; i >= 0; --i) {
+        if (vol > volumeLevels[i]) {
+          vol = volumeLevels[i];
+          break;
         }
-        ytplayer.seekTo(time);
-      };
-      control.mute.onclick = function() {
-        ytplayer.mute();
-        switchButtons('mute', 'unmute');
-      };
-      control.unmute.onclick = function() {
-        ytplayer.unMute();
-        switchButtons('unmute', 'mute');
-      };
-      control.softer.onclick = function() {
-        var i;
-        var vol = ytplayer.getVolume();
+      }
 
-        for (i = volumeLevels.length - 1; i >= 0; i--){
-          if (vol > volumeLevels[i]) {
-            vol = volumeLevels[i];
-            break;
-          }
-        };
+      player.setVolume(vol);
+    };
+    control.louder.onclick = function() {
+      var i;
+      var vol = player.getVolume();
+      for (i=0; i < volumeLevels.length; ++i) {
+        if (vol < volumeLevels[i]) {
+          vol = volumeLevels[i];
+          break;
+        }
+      }
+      player.setVolume(vol);
 
-        ytplayer.setVolume(vol);
-      };
-      control.louder.onclick = function() {
-        var i;
-        var vol = ytplayer.getVolume();
-        for (i=0; i < volumeLevels.length; i++) {
-          if (vol < volumeLevels[i]) {
-            vol = volumeLevels[i];
-            break;
-          }
-        };
-        ytplayer.setVolume(vol);
-
-      };
-      control.reset.onclick = function() {
-        ytplayer.pauseVideo();
-        ytplayer.seekTo(0);
-        showPlay();
-      };
-
-      initial_id = document.getElementById('youtube-initial-id').value;
-      ytplayer.cueVideoById(initial_id);
-      ytplayer.setVolume(100);
-      resetControls();
-      ytplayer.pauseVideo();
+    };
+    control.reset.onclick = function() {
+      player.pauseVideo();
+      player.seekTo(0);
       showPlay();
+    };
 
-      function updateytplayerInfo() {
-        var seconds = ytplayer.getCurrentTime();
-        var length = ytplayer.getDuration();
-        var percent = 100.0 * seconds / (length || 1);
+    if (initialId) {
+      player.cueVideoById(initialId);
+    }
+    player.setVolume(100);
+    resetControls();
+    player.pauseVideo();
+    showPlay();
 
-        control.videotime.textContent = fmtTime(Math.round(seconds));
-        control.videolength.textContent = fmtTime(Math.round(length));
-        control.videopercent.textContent = Math.round(percent);
-        control.volume.textContent = ytplayer.getVolume();
-      }
+    function updateytplayerInfo() {
+      var seconds = player.getCurrentTime();
+      var length = player.getDuration();
+      var percent = 100.0 * seconds / (length || 1);
 
-      function fmtTime(seconds) {
-        mm = Math.floor(seconds / 60);
-        ss = (seconds % 60);
-
-        return mm + ":" + pad(ss, 2);
-      }
-
-      function pad(num,len) {
-        return (1e15 + num + "").slice(-len);
-      }
-
-
-      function switchButtons(from, to) {
-        control[from].style.display = 'none';
-        control[to].style.display = '';
-        control[to].focus();
-      }
-
-      function showPlay() {
-        control.pause.style.display = 'none';
-        control.play.style.display = '';
-      }
-
-      function showMute() {
-        control.unmute.style.display = 'none';
-        control.mute.style.display = '';
-      }
-
-      function resetControls() {
-        showPlay();
-        showMute();
-      }
+      control.videotime.textContent = fmtTime(Math.round(seconds));
+      control.videolength.textContent = fmtTime(Math.round(length));
+      control.videopercent.textContent = Math.round(percent);
+      control.volume.textContent = player.getVolume();
     }
 
-    function findControls(ids) {
-      var i, controls = {};
-      for (i = 0; i < ids.length; i++) {
-        controls[ids[i]] = document.getElementById(ids[i]);
-      }
-      return controls;
+    function fmtTime(seconds) {
+      var mm = Math.floor(seconds / 60);
+      var ss = (seconds % 60);
+
+      return mm + ":" + pad(ss, 2);
     }
 
-    function load(id) {
-      ytplayer.loadVideoById(id, 0);
+    function pad(num,len) {
+      return (1e15 + num + "").slice(-len);
+    }
+
+    function showPlay() {
+      control.pause.style.display = 'none';
+      control.play.style.display = '';
+    }
+
+    function showMute() {
+      control.unmute.style.display = 'none';
+      control.mute.style.display = '';
+    }
+
+    function resetControls() {
+      showMute();
+    }
+
+    function loadVideo(id) {
+      player.loadVideoById(id, 0);
       resetControls();
     }
+  }
 
-  });
+  function switchButtons(from, to) {
+    control[from].style.display = 'none';
+    control[to].style.display = '';
+    control[to].focus();
+  }
+
+  function initializeApi() {
+    var tag = document.createElement('script');
+
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = function() {
+      player = new YT.Player('playercontainer', {
+        height: '344',
+        width: '425',
+        playerVars: { 'autoplay': 1, 'controls': 0 },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    };
+  }
+
+
+  function findControls(ids) {
+    var i, controls = {};
+    for (i = 0; i < ids.length; i++) {
+      controls[ids[i]] = document.getElementById(ids[i]);
+    }
+    return controls;
+  }
+
+  function loadVideoBeforePlayerLoaded(id) {
+    initialId = id;
+  }
+
 })(window);
