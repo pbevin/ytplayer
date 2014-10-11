@@ -1,7 +1,7 @@
 function updateytplayerInfo() {
   var seconds = ytplayer.getCurrentTime();
   var length = ytplayer.getDuration();
-  var percent = 100.0 * seconds / length;
+  var percent = 100.0 * seconds / (length || 1);
   $('#videotime').text(Math.round(seconds));
   $('#videolength').text(Math.round(length));
   $('#videopercent').text(Math.round(percent));
@@ -27,7 +27,7 @@ function onYouTubePlayerReady(playerId) {
     $('#play').focus();
   });
   $('#fwd').click(function() {
-    ytplayer.seekTo(ytplayer.getCurrentTime() + 15);	
+    ytplayer.seekTo(ytplayer.getCurrentTime() + 15);
   });
   $('#rewind').click(function() {
     time = ytplayer.getCurrentTime();
