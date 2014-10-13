@@ -9,7 +9,7 @@
   ];
   var control, player, initialId;
 
-  initializeApi();
+  document.addEventListener('DOMContentLoaded', initializeApi);
   window.loadVideo = loadVideoBeforePlayerLoaded;
 
   function onPlayerStateChange(state) {
@@ -39,7 +39,7 @@
       player.seekTo(player.getCurrentTime() + 15);
     };
     control.rewind.onclick = function() {
-      time = player.getCurrentTime();
+      var time = player.getCurrentTime();
       time -= 15;
       if (time < 0) {
         time = 0;
@@ -148,11 +148,38 @@
     var firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
+    var playerVars = {
+      autoplay: 1,
+      controls: 0,
+    };
+    var container = document.getElementById('playercontainer');
+    if (!container) {
+      console.error("Can't find #playercontainer element");
+      return;
+    }
+    var videoId = initialId || container.getAttribute("data-video-id");
+    var captions = container.getAttribute("data-captions");
+    if (captions) {
+      playerVars.cc_load_policy = 1;
+    }
+    var lang = container.getAttribute("data-language");
+    if (lang) {
+      playerVars.hl = lang;
+    }
+    var start = container.getAttribute("data-start");
+    if (start) {
+      playerVars.start = start;
+    }
+
+    var width = container.getAttribute("data-width");
+    var height = container.getAttribute("data-height");
+
     window.onYouTubeIframeAPIReady = function() {
       player = new YT.Player('playercontainer', {
-        height: '344',
-        width: '425',
-        playerVars: { 'autoplay': 1, 'controls': 0 },
+        width: width || "640",
+        height: height || "480",
+        videoId: videoId,
+        playerVars: playerVars,
         events: {
           'onReady': onPlayerReady,
           'onStateChange': onPlayerStateChange
@@ -160,7 +187,6 @@
       });
     };
   }
-
 
   function findControls(ids) {
     var i, controls = {};
