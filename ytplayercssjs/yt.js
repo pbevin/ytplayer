@@ -149,7 +149,7 @@
     firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     var playerVars = {
-      autoplay: 1,
+      autoplay: 0,
       controls: 0,
     };
     var container = document.getElementById('playercontainer');
@@ -197,6 +197,9 @@
   }
 
   function loadVideoBeforePlayerLoaded(id) {
+    // Called when loadVideo() runs before the YT player
+    // has finished initializing. We just note the video ID,
+    // so that initializeApi() can use it.
     initialId = id;
   }
 
