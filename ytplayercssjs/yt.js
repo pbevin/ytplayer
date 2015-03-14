@@ -21,6 +21,8 @@
     } else {
       switchButtons("pause", "play");
     }
+
+    updateCaptionState();
   }
 
   function onPlayerReady() {
@@ -89,6 +91,20 @@
       showPlay();
     };
 
+    control.turn_captions_on.style.display = "none";
+    control.turn_captions_off.style.display = "none";
+
+    control.turn_captions_on.onclick = function() {
+      player.loadModule('captions');
+      switchButtons('turn_captions_on', 'turn_captions_off');
+    };
+
+    control.turn_captions_off.onclick = function() {
+      player.unloadModule('captions');
+      switchButtons('turn_captions_off', 'turn_captions_on');
+    };
+
+
     if (initialId) {
       player.cueVideoById(initialId);
     }
@@ -122,6 +138,26 @@
     control[from].style.display = 'none';
     control[to].style.display = '';
     control[to].focus();
+  }
+
+  function updateCaptionState() {
+    var tracklist = player.getOption("captions", "tracklist");
+    var on = document.getElementById('turn_captions_on');
+    var off = document.getElementById('turn_captions_off');
+
+    if (tracklist && tracklist[0]) {
+      // Captions are available and enabled
+      on.style.display = 'none';
+      off.style.display = '';
+    } else if (tracklist && !tracklist[0]) {
+      // Captions are available and disabled
+      on.style.display = '';
+      off.style.display = 'none';
+    } else if (!tracklist) {
+      // Captions are not available
+      on.style.display = 'none';
+      off.style.display = 'none';
+    }
   }
 
   function initializeApi() {
@@ -176,7 +212,8 @@
     var elt = document.getElementById('controls');
     var buttonIds = [
       'play', 'pause', 'rewind', 'fwd',
-      'reset', 'softer', 'louder', 'mute', 'unmute'
+      'reset', 'softer', 'louder', 'mute', 'unmute',
+      'turn_captions_on', 'turn_captions_off'
     ];
     var title, fieldset;
     control = {};
@@ -185,7 +222,7 @@
 
     buttonIds.forEach(function(id) {
       var button = document.createElement("button");
-      button.innerText = id;
+      button.innerText = id.replace(/_/g, ' ');
       button.setAttribute('id', id);
       fieldset.appendChild(button);
       control[id] = button;
