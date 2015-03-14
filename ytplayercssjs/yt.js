@@ -2,15 +2,18 @@
   'use strict';
 
   var volumeLevels = [ 0,10,20,30,40,50,60,70,80,90,100 ];
-  var ids = [
-    'play', 'pause', 'rewind', 'fwd',
-    'reset', 'softer', 'louder', 'mute', 'unmute',
-    'videotime', 'videolength', 'videopercent', 'volume'
-  ];
   var control, player, initialId;
+  var container, playerState;
 
   document.addEventListener('DOMContentLoaded', initializeApi);
   window.loadVideo = loadVideoBeforePlayerLoaded;
+
+  function loadVideoBeforePlayerLoaded(id) {
+    // Called when loadVideo() runs before the YT player
+    // has finished initializing. We just note the video ID,
+    // so that initializeApi() can use it.
+    initialId = id;
+  }
 
   function onPlayerStateChange(state) {
     if (state.data == YT.PlayerState.PLAYING) {
@@ -21,7 +24,8 @@
   }
 
   function onPlayerReady() {
-    control = findControls(ids);
+    createControls();
+
     setInterval(updateytplayerInfo, 250);
     window.loadVideo = loadVideo;
     window.resetControls = resetControls;
@@ -91,29 +95,8 @@
     player.setVolume(100);
     resetControls();
     player.pauseVideo();
+    control.play.focus();
     showPlay();
-
-    function updateytplayerInfo() {
-      var seconds = player.getCurrentTime();
-      var length = player.getDuration();
-      var percent = 100.0 * seconds / (length || 1);
-
-      control.videotime.textContent = fmtTime(Math.round(seconds));
-      control.videolength.textContent = fmtTime(Math.round(length));
-      control.videopercent.textContent = Math.round(percent);
-      control.volume.textContent = player.getVolume();
-    }
-
-    function fmtTime(seconds) {
-      var mm = Math.floor(seconds / 60);
-      var ss = (seconds % 60);
-
-      return mm + ":" + pad(ss, 2);
-    }
-
-    function pad(num,len) {
-      return (1e15 + num + "").slice(-len);
-    }
 
     function showPlay() {
       control.pause.style.display = 'none';
@@ -152,7 +135,8 @@
       autoplay: 0,
       controls: 0,
     };
-    var container = document.getElementById('playercontainer');
+
+    container = document.getElementById('playercontainer');
     if (!container) {
       console.error("Can't find #playercontainer element");
       return;
@@ -188,19 +172,63 @@
     };
   }
 
-  function findControls(ids) {
-    var i, controls = {};
-    for (i = 0; i < ids.length; i++) {
-      controls[ids[i]] = document.getElementById(ids[i]);
-    }
-    return controls;
+  function createControls() {
+    var elt = document.getElementById('controls');
+    var buttonIds = [
+      'play', 'pause', 'rewind', 'fwd',
+      'reset', 'softer', 'louder', 'mute', 'unmute'
+    ];
+    var title, fieldset;
+    control = {};
+
+    fieldset = document.createElement("fieldset");
+
+    buttonIds.forEach(function(id) {
+      var button = document.createElement("button");
+      button.innerText = id;
+      button.setAttribute('id', id);
+      fieldset.appendChild(button);
+      control[id] = button;
+    });
+    elt.appendChild(fieldset);
+
+    playerState = document.createElement("div");
+    playerState.setAttribute('id', 'playerstate');
+    elt.appendChild(playerState);
   }
 
-  function loadVideoBeforePlayerLoaded(id) {
-    // Called when loadVideo() runs before the YT player
-    // has finished initializing. We just note the video ID,
-    // so that initializeApi() can use it.
-    initialId = id;
+  function updateytplayerInfo() {
+    var seconds = player.getCurrentTime();
+    var length = player.getDuration();
+    var percent = 100.0 * seconds / (length || 1);
+
+    var currentTime = fmtTime(Math.round(seconds));
+    var videoLength = fmtTime(Math.round(length));
+    var videoPercent = Math.round(percent);
+    var volume = player.getVolume();
+
+    var text = (
+      "Time: " + wrap(currentTime) +
+      " of " + wrap(videoLength) +
+      " [" + wrap(videoPercent) + "%]" +
+      " &emsp; Volume: " + wrap(volume)
+    );
+
+    playerState.innerHTML = text;
+
+    function wrap(text) {
+      return '<span class="stat">' + text + '</span>';
+    }
+    function fmtTime(seconds) {
+      var mm = Math.floor(seconds / 60);
+      var ss = (seconds % 60);
+
+      return mm + ":" + pad(ss, 2);
+    }
+
+    function pad(num,len) {
+      return (1e15 + num + "").slice(-len);
+    }
   }
 
 })(window);

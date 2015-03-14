@@ -10,7 +10,7 @@ width : 425px;
 
 #controls {
 clear : both;
-width : 426px;
+width : 640px;
 padding : 0;
 padding-bottom : 40px;
 margin : 0;
@@ -40,7 +40,7 @@ border : none;
 }
 
 
-input {
+button {
 color : #fff;
 background-color : #700000;
 border : solid 1px #fff;
@@ -51,7 +51,7 @@ padding-left : 7px;
 padding-right : 7px;
 }
 
-input:hover, input:focus, input:active {
+button:hover, button:focus, button:active {
 color : #700000;
 background-color : #fff;
 border : solid 1px #700000;
@@ -62,7 +62,7 @@ padding-left : 7px;
 padding-right : 7px;
 }
 
-#videolength, #videotime, #volume, #videopercent {
+.stat {
 font-size : .9em;
 color : #700000;
 }
